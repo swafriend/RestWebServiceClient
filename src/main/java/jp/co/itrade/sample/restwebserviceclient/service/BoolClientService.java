@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 @Component
@@ -78,28 +79,43 @@ class BoolClientService {
 //                .build();
 //        ResponseEntity<List<String>> rateResponse = restOperations.exchange(request, new ParameterizedTypeReference<>() {
 //        });
-        
-//        System.out.println(rateResponse);
 
         System.out.println("before:");
         Mono<String> message = webClient.get()
                 .uri("http://localhost:8080/books/00000000-0000-0000-0000-000000000000")
-//                .uri(uriBuilder -> uriBuilder.path("http://localhost:8080/books/00000000-0000-0000-0000-000000000000").build())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(String.class);
         System.out.println("after:");
 
-        IntStream.range(1,10).forEach(value -> {
+        IntStream.range(1,5).forEach(value -> {
             try {
-                System.out.println("waiting:" + value + LocalDateTime.now());
+                System.out.println("before:" + value + "  " +  LocalDateTime.now());
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
 
-        System.out.println(message.block());
+        System.out.println("Before ThreadID:" + Thread.currentThread().getId());
+        message.subscribe(new Consumer<String>() {
+            @Override
+            public void accept(String s) {
+                System.out.println("After ThreadID:" + Thread.currentThread().getId());
+                System.out.println(s);
+            }
+        });
+
+        IntStream.range(1,6).forEach(value -> {
+            try {
+                System.out.println("after:" + value + "  " +  LocalDateTime.now());
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        // blockで取りたい時
+//        System.out.println(message.block());
 
     }
 
